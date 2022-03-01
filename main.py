@@ -48,28 +48,40 @@ def crawler(root_url: str):
                     domain_name = urlparse(link).netloc
                     # condition to check if domain is right
                     if "ontariotechu.ca" in domain_name or "uoit.ca" in domain_name:
+                        # add edge to graph
                         graph.add_edge(current_url, link)
+                        # if the link has already been discovered, move to the next one
                         if link in discovered:
                             continue
+                        # add link to next-to-visit and discovered
                         next_to_visit.append(link)
                         discovered.add(link)
                     # check if url is a relative url
                     elif link.startswith('/'):
+                        # join current url with relative url to get complete url
                         link = urljoin(current_url, link)
+                        # add edge to graph
                         graph.add_edge(current_url, link)
+                        # if the link has already been discovered, move to the next one
                         if link in discovered:
                             continue
+                        # add link to next-to-visit and discovered
                         next_to_visit.append(link)
                         discovered.add(link)
+                    # write every 2000 discovered nodes to an output file to avoid loss of information in case the
+                    # system crashes
                     if len(discovered) % 2000 == 0:
                         path_to_file = f'university-network-{len(discovered)}.gexf'
+                        # write the graph to output file in gexf format
                         nx.write_gexf(graph, path_to_file)
             print(f'Number of nodes discovered {len(discovered)}')
             print(f'Number of nodes visited {len(visited)}')
+        # catch any exception during BFS, print and then continue to next url. All exceptions are handled by ignoring
+        # the problem link
         except Exception as e:
             print(e)
             continue
-
+    # write all nodes till end of parsing to output file
     path_to_file = f'university-network-final.gexf'
     nx.write_gexf(graph, path_to_file)
     print(f'Number of nodes in information network {len(visited)}')
