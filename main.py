@@ -1,37 +1,45 @@
-from urllib.parse import urlparse, urljoin
 import networkx as nx
+import urllib3
+from urllib.parse import urlparse, urljoin
 from random import randint
 from time import sleep
-
-import urllib3
 from bs4 import BeautifulSoup
-
-
-# def find_metrics(G):
-#     pass
 
 
 def crawler(root_url: str):
     # list of extensions to ignore from crawler
     extensions = ['.jpg', '.jpeg', '.png', '.pdf', '.svg']
-    # file = 1
+    # create a connection pool to handle requests
     http = urllib3.PoolManager()
+    # initialise next_to_visit list that behaves as a queue used to traverse graphs in BFS
     next_to_visit = []
+    # initialise discovered variable as a set to store unique urls that have been discovered so far
     discovered = set()
+    # initialise visited list that stores the urls that have been traversed. This is purely to understand which nodes
+    # have already been traversed and the order of the traversal
     visited = []
+    # add root url to next_to_visit
     next_to_visit.append(root_url)
+    # add root url to discovered
     discovered.add(root_url)
-    # initialise networkx directed graph
+    # initialise networkx directed graph to store nodes and edges
     graph = nx.DiGraph()
+    # repeat the loop till the contents of the queue are empty
     while len(next_to_visit) != 0:
+
         current_url = next_to_visit.pop(0)
         graph.add_node(current_url, label=current_url)
         visited.append(current_url)
+        # encompass code in try-catch blocks to avoid interruptions to crawler due to exceptions
         try:
+            # sleep command for an interval of 1s or 2s to ensure inconsistent delay in hitting the urls and
+            # avoid blocking of requests
             sleep(randint(1, 2))
+            # api to make http request to given url
             webpage = http.request('GET', current_url)
+            # use BeautifulSoup library to parse webpage data
             soup = BeautifulSoup(webpage.data, "html.parser")
-            # print(soup.head.title)
+            # extract all the urls inside <a> tags
             for url in soup.find_all('a'):
                 link = url.get('href')
                 # condition to check if link is not an image or a pdf
@@ -45,6 +53,7 @@ def crawler(root_url: str):
                         next_to_visit.append(link)
                         discovered.add(link)
                         graph.add_edge(current_url, link)
+                    # check if url is a relative url
                     elif link.startswith('/'):
                         link = urljoin(current_url, link)
                         if link in discovered:
@@ -55,8 +64,6 @@ def crawler(root_url: str):
                     if len(discovered) % 2000 == 0:
                         path_to_file = f'university-network-{len(discovered)}.gexf'
                         nx.write_gexf(graph, path_to_file)
-                        # print(*visited, sep='\n')
-                        # file += 1
             print(f'Number of nodes discovered {len(discovered)}')
             print(f'Number of nodes visited {len(visited)}')
         except Exception as e:
@@ -66,8 +73,6 @@ def crawler(root_url: str):
     path_to_file = f'university-network-final.gexf'
     nx.write_gexf(graph, path_to_file)
     print(f'Number of nodes in information network {len(visited)}')
-    # find the metrics of the graph derived from the crawler
-    # find_metrics(graph)
 
 
 if __name__ == '__main__':
