@@ -48,19 +48,19 @@ def crawler(root_url: str):
                     domain_name = urlparse(link).netloc
                     # condition to check if domain is right
                     if "ontariotechu.ca" in domain_name or "uoit.ca" in domain_name:
+                        graph.add_edge(current_url, link)
                         if link in discovered:
                             continue
                         next_to_visit.append(link)
                         discovered.add(link)
-                        graph.add_edge(current_url, link)
                     # check if url is a relative url
                     elif link.startswith('/'):
                         link = urljoin(current_url, link)
+                        graph.add_edge(current_url, link)
                         if link in discovered:
                             continue
                         next_to_visit.append(link)
                         discovered.add(link)
-                        graph.add_edge(current_url, link)
                     if len(discovered) % 2000 == 0:
                         path_to_file = f'university-network-{len(discovered)}.gexf'
                         nx.write_gexf(graph, path_to_file)
