@@ -6,7 +6,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 
 
-def crawler(root_url: str):
+def crawl_engine(root_url: str):
     # list of extensions to ignore from crawler
     extensions = ['.jpg', '.jpeg', '.png', '.pdf', '.svg']
     # create a connection pool to handle requests
@@ -89,4 +89,4 @@ def crawler(root_url: str):
 
 if __name__ == '__main__':
     # crawl all ontario tech webpages
-    crawler(root_url="https://ontariotechu.ca/")
+    crawl_engine(root_url="https://ontariotechu.ca/")
